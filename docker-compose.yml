@@ -1,0 +1,67 @@
+version: '3'
+
+services:
+  wp:
+    image: wordpress:6.1.1-php7.4 # https://hub.docker.com/_/wordpress/
+    ports:
+      - 127.0.0.1:8081:80 # change ip if required
+    volumes:
+      - ./config/php.conf.ini:/usr/local/etc/php/conf.d/conf.ini
+      - ./wp:/var/www/html # Full wordpress project
+      #- ./plugin-name/trunk/:/var/www/html/wp-content/plugins/plugin-name # Plugin development
+      #- ./theme-name/trunk/:/var/www/html/wp-content/themes/theme-name # Theme development
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_NAME: bddwp
+      WORDPRESS_DB_USER: root
+      WORDPRESS_DB_PASSWORD: root
+    depends_on:
+      - db
+    links:
+      - db
+
+  wpcli:
+    image: wordpress:cli
+    volumes:
+      - ./config/php.conf.ini:/usr/local/etc/php/conf.d/conf.ini
+      - ./wp:/var/www/html
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_NAME: bddwp
+      WORDPRESS_DB_USER: root
+      WORDPRESS_DB_PASSWORD: root
+    depends_on:
+      - db
+      - wp
+
+  pma:
+    image: phpmyadmin/phpmyadmin
+    environment:
+      # https://docs.phpmyadmin.net/en/latest/setup.html#docker-environment-variables
+      PMA_HOST: db
+      PMA_PORT: 3306
+      MYSQL_ROOT_PASSWORD: root
+      UPLOAD_LIMIT: 50M
+    ports:
+      - 127.0.0.1:8082:80
+    links:
+      - db:db
+
+  db:
+    image: mysql:latest # https://hub.docker.com/_/mysql/ - or mariadb https://hub.docker.com/_/mariadb
+    ports:
+      - 127.0.0.1:3307:3306 # change ip if required
+    command: [
+        '--default_authentication_plugin=mysql_native_password',
+        '--character-set-server=utf8mb4',
+        '--collation-server=utf8mb4_unicode_ci'
+    ]
+    volumes:
+      - ./wp-data:/docker-entrypoint-initdb.d
+      - db_data:/var/lib/mysql
+    environment:
+      MYSQL_DATABASE: bddwp
+      MYSQL_ROOT_PASSWORD: root
+
+volumes:
+  db_data:
