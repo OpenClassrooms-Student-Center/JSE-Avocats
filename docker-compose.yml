@@ -2,12 +2,11 @@ version: '3'
 
 services:
   wp:
-    image: wordpress:6.1.1-php7.4 # https://hub.docker.com/_/wordpress/
+    build: .
     ports:
       - 127.0.0.1:8081:80 # change ip if required
     volumes:
       - ./config/php.conf.ini:/usr/local/etc/php/conf.d/conf.ini
-      - ./wp:/var/www/html # Full wordpress project
       #- ./plugin-name/trunk/:/var/www/html/wp-content/plugins/plugin-name # Plugin development
       #- ./theme-name/trunk/:/var/www/html/wp-content/themes/theme-name # Theme development
     environment:
